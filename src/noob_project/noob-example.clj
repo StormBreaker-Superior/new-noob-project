@@ -1,6 +1,5 @@
 (ns noob-project.noob-example)
 
-
 (+ 1 2)
 
 (print "Hello")
