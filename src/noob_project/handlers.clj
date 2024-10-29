@@ -12,4 +12,4 @@
 (defn task [request]
   (let [sectionId (utils/get-key-from-request request :sectionId)
         taskId (utils/get-key-from-request request :taskId)]
-    (str "Showing description for " taskId " in section " sectionId)))
+    (str "Showing description for " taskId "   in section " sectionId)))
