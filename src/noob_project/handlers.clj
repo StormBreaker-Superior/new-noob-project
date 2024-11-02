@@ -6,7 +6,15 @@
             [ring.util.response :as response]))
 
 (defn home [request]
-  "Welcome to Home Page")
+  (let [existingSections (mc/find-maps (db/get-db) "sections" {} {:sectionName 1})
+        existingSectionsWithNumber (map-indexed (fn [idx document] (str (+ idx 1) ". " (:sectionName document))) existingSections)
+        sectionCount (count existingSections)
+        sectionText (clojure.string/join "\n" existingSectionsWithNumber)]
+
+    (pprint/pprint existingSectionsWithNumber)
+    (if (empty? existingSectionsWithNumber)
+      (response/response "Welcome to HomePage! No sections Added")
+      (response/response (str "Welcome to HomePage!" "\n\n" sectionCount " sections are added" "\n" sectionText)))))
 
 (defn create-section [request]
   "" " 1. get sectionName and category from request
