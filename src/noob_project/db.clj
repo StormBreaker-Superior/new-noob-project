@@ -13,7 +13,7 @@
   (mc/insert-and-return (get-db) collection data))
 
 (defn data-exists? [collection data]
-  (mc/find-one (get-db) collection data))
+  (boolean (mc/find-one (get-db) collection data)))
 
 (defn get-count [collection]
   (mc/count (get-db) collection))
