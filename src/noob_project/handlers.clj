@@ -54,10 +54,31 @@
        (response/status 500)))))
 
 
-(defn sections [request]
-  ;; (println request)
-  (let [sectionId (utils/get-key-from-request request :sectionId)]
-    (str "Welcome to section " sectionId)))
+(defn get-tasks [request]
+  (try
+    (let [body (:params request)
+          sectionName (:sectionId body)
+          taskCollection "tasks"
+          sectionExists (db/data-exists? "sections" {:sectionName sectionName})]
+
+      (if sectionExists
+        ((let [tasksDocumentsMap (db/get-data taskCollection {:sectionName sectionName} {:taskName 1 :taskDescription 1})
+               taskMapWithFormattedString (map-indexed
+                                           (fn [idx document]
+                                             (str (+ idx 1) ". " (:taskName document) " => " (get document :taskDescription "Task Not Opened Yet!!"))) tasksDocumentsMap)
+               tasksText (clojure.string/join "\n" taskMapWithFormattedString)]
+
+           (if (empty? tasksText)
+             (response/response (str "No Task Added for section " sectionName))
+             (response/response (str (count tasksDocumentsMap) " Tasks added for section " sectionName  "\n\n" tasksText)))))
+
+        (-> (response/response "Section Not Found")
+            (response/status 404))))
+    (catch Exception e
+      (->
+       (response/response "Internal Server Error")
+       (response/status 500)))))
+
 
 (defn task [request]
   (let [sectionId (utils/get-key-from-request request :sectionId)

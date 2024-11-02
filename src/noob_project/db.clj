@@ -17,3 +17,6 @@
 
 (defn get-count [collection]
   (mc/count (get-db) collection))
+
+(defn get-data [collection projection filter]
+  (mc/find-maps (get-db) collection projection filter))
