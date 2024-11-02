@@ -100,18 +100,18 @@
           ;; TODO: if section doesn't exist, then what should be the behaviour
            ;; (1) fail the request 
            ;; (2) create section
-        (if (db/data-exists? "sections" {:sectionName sectionName})
-          (let [insertResult (db/insert-data collection data)]
-            (if insertResult
-                  ;; TODO: allow only string value in taskName
-              (-> (response/response "Task Added Successfully")
-                  (response/status 201))
-              (-> (response/response "Internal Server Error.Db insertion failed")
-                  (response/status 501))))
-          (-> (response/response (str "section \"" sectionName "\" doesn't exist"))
-              (response/status 404)))
-        (-> (response/response "Bad Request. No sectionId or taskName passed")
-            (response/status 400))))
+       (if (db/data-exists? "sections" {:sectionName sectionName})
+         (let [insertResult (db/insert-data collection data)]
+           (if insertResult
+                 ;; TODO: allow only string value in taskName
+             (-> (response/response "Task Added Successfully")
+                 (response/status 201))
+             (-> (response/response "Internal Server Error.Db insertion failed")
+                 (response/status 501))))
+         (-> (response/response (str "section \"" sectionName "\" doesn't exist"))
+             (response/status 404)))
+       (-> (response/response "Bad Request. No sectionId or taskName passed")
+           (response/status 400))))
     (catch Exception e
       (-> (response/response "Internal Server Error")
           (response/status 500)))))
