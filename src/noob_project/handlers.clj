@@ -63,3 +63,30 @@
   (let [sectionId (utils/get-key-from-request request :sectionId)
         taskId (utils/get-key-from-request request :taskId)]
     (str "Showing description for " taskId " in section " sectionId)))
+
+(defn create-task [request]
+  (try (let [body (:params request)
+             sectionName (:sectionId body)
+             taskName (:taskName body)
+             taskDescription (:taskDescription body)
+             collection "tasks"
+             data {:sectionName sectionName :taskName taskName :taskDescription taskDescription}]
+
+         (pprint/pprint (str "body" body "\n" "Task creation requested for" data))
+         (if
+          (and (not-empty sectionName) (not-empty taskName))
+          ;; TODO: if section doesn't exist, then what should be the behaviour
+           ;; (1) fail the request 
+           ;; (2) create section
+           (let [insertResult (db/insert-data collection data)]
+             (if insertResult
+               ;; TODO: allow only string value in taskName
+               (-> (response/response "Task Added Successfully")
+                   (response/status 201))
+               (-> (response/response "Internal Server Error.Db insertion failed")
+                   (response/status 501))))
+           (-> (response/response "Bad Request. No sectionId or taskName passed")
+               (response/status 400))))
+       (catch Exception e
+         (-> (response/response "Internal Server Error")
+             (response/status 500)))))

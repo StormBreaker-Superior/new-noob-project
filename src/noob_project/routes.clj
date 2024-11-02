@@ -7,5 +7,6 @@
   (compojure/GET "/" params handlers/home)
   (compojure/GET "/:sectionId" params handlers/sections)
   (compojure/GET "/:sectionId/:taskId" params handlers/task)
-  (compojure/POST "/sections" params handlers/create-section )
+  (compojure/POST "/sections" params handlers/create-section)
+  (compojure/POST "/:sectionId" params handlers/create-task)
   (route/not-found "Page Not Found !"))
