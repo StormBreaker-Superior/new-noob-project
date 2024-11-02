@@ -7,7 +7,8 @@
                  [com.novemberain/monger "3.5.0"]
                  [ring/ring-core "1.9.5"]
                  [ring/ring-jetty-adapter "1.9.5"]
-                 [compojure "1.6.2"]]
+                 [compojure "1.6.2"]
+                 [mount "0.1.16"]]
   :main ^:skip-aot noob-project.core
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler noob-project.core/app}
