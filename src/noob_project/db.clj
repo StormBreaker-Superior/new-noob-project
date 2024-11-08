@@ -20,3 +20,6 @@
 
 (defn get-data [collection projection filter]
   (mc/find-maps (get-db) collection projection filter))
+
+(defn delete-data [collection projection]
+  (mc/remove (get-db) collection projection))

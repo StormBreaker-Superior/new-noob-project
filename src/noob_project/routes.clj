@@ -9,4 +9,5 @@
   (compojure/GET "/:sectionId/:taskId" params handlers/task)
   (compojure/POST "/sections" params handlers/create-section)
   (compojure/POST "/:sectionId" params handlers/create-task)
+  (compojure/DELETE "/:sectionId/tasks/:taskId" params handlers/delete-task)
   (route/not-found "Page Not Found !"))

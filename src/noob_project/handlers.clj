@@ -115,3 +115,23 @@
     (catch Exception e
       (-> (response/response "Internal Server Error")
           (response/status 500)))))
+
+(defn delete-task [request]
+  (try
+    (let [collection "tasks"
+          body (:params request)
+          taskName (:taskId body)
+          taskExists (db/data-exists? collection {:taskName taskName})]
+      (println "body" body " taskName " taskName) 
+      (if taskExists
+        (let [result (db/delete-data collection {:taskName taskName})]
+          (if result
+            (-> (response/response "Task Deleted Successfully"))
+            (-> (response/response "Internal Server Error")
+                (response/status 501))))
+        (-> (response/response "Task Not Found")
+            (response/status 404))))
+    (catch Exception e
+      (pprint/pprint (.printStackTrace e))
+      (-> (response/response "Internal Server Error")
+          (response/status 500)))))
