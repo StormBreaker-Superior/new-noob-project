@@ -23,3 +23,6 @@
 
 (defn delete-data [collection projection]
   (mc/remove (get-db) collection projection))
+
+(defn update-data [collection document updates] 
+  (mc/update (get-db) collection document updates))

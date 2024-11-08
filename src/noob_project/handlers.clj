@@ -157,3 +157,23 @@
     (catch Exception e
       (-> (response/response "Internal Server Error")
           (response/status 500)))))
+
+(defn update-task [request]
+  (try
+    (let [collection "tasks"
+          body (:params request)
+          sectionName (:sectionId body)
+          taskName (:taskId body)
+          taskExist (db/data-exists? collection {:sectionName sectionName :taskName taskName})]
+      (pprint/pprint body)
+      (if taskExist
+        (let [result (db/update-data collection {:taskName taskName} (dissoc body :sectionId :taskId))]
+          (if result
+            (-> (response/response "Task Updated Successsfully"))
+            (-> (response/response "Internal Server Error")
+                (response/status 501))))
+        (-> (response/response "Task Not Found")
+            (response/status 404))))
+    (catch Exception e
+      (-> (response/response "Internal Server Error")
+          (response/status 500)))))
