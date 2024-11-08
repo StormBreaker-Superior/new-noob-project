@@ -177,3 +177,6 @@
     (catch Exception e
       (-> (response/response "Internal Server Error")
           (response/status 500)))))
+
+(defn udate-section [request]
+  "Update section here")
