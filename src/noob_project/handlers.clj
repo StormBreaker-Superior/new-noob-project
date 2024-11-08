@@ -135,3 +135,25 @@
       (pprint/pprint (.printStackTrace e))
       (-> (response/response "Internal Server Error")
           (response/status 500)))))
+
+
+(defn delete-section [request]
+  (try
+    (let [sectionsCollection "sections"
+          taskCollection "tasks"
+          body (:params request)
+          sectionName (:sectionId body)
+          sectionExist (db/data-exists? sectionsCollection {:sectionName sectionName})]
+      (if sectionExist
+        (let [sectionsResult (db/delete-data sectionsCollection {:sectionName sectionName})
+              tasksResult (db/delete-data taskCollection {:sectionName sectionName})]
+          (if sectionsResult
+            ;; TODO : Handle eventual consistency or tasks deletion failures
+            (-> (response/response "Task Deleted Successsfully"))
+            (-> (response/response "Internal Server Error")
+                (response/status 501))))
+        (-> (response/response "Section Not Found")
+            (response/status 404))))
+    (catch Exception e
+      (-> (response/response "Internal Server Error")
+          (response/status 500)))))
