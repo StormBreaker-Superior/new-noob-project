@@ -3,6 +3,7 @@
   (:require
    [noob-project.migration.utils :as migration-utils]
    [noob-project.db.utils :as db]
+   [noob-project.db.context :as dbc]
    [mount.core :as mount]
    [monger.collection :as mc]
    [noob-project.constansts :as consts]))
@@ -26,12 +27,12 @@
           previous-id (atom (get-last-task-id))]
       (doseq [section-doc existing-section-docs]
         (let [new-id (swap! previous-id inc)
-              result (mc/update-by-id (db/get-db) consts/collection-sections (:_id section-doc) {:$set {:sectionId new-id}})]
+              result (mc/update-by-id (dbc/get-db) consts/collection-sections (:_id section-doc) {:$set {:sectionId new-id}})]
           (if (not result)
             (swap! previous-id dec))))
       (if (not-empty existing-section-docs)
         (do
-          (println "Updating task to" @previous-id)
+          (println "Updating section to" @previous-id)
           (update-last-task-id @previous-id))))
     (catch Exception e
       (println "Error in migrating sections"))))
@@ -43,7 +44,7 @@
           previous-id (atom (get-last-task-id))]
       (doseq [task-document existing-tasks-docs]
         (let [new-id (swap! previous-id inc)
-              result (mc/update-by-id (db/get-db) consts/collection-tasks (:_id task-document) {:$set {:taskId new-id}})]
+              result (mc/update-by-id (dbc/get-db) consts/collection-tasks (:_id task-document) {:$set {:taskId new-id}})]
           (if (not result)
             (swap! previous-id dec))))
       (if (not-empty existing-tasks-docs)
