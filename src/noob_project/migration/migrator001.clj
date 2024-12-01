@@ -2,11 +2,12 @@
   (:gen-class)
   (:require
    [noob-project.migration.utils :as migration-utils]
-   [noob-project.db :as db]
+   [noob-project.db.utils :as db]
    [mount.core :as mount]
    [monger.collection :as mc]
    [noob-project.constansts :as consts]))
 
+;; TODO : Move this to db/context or utils
 (defn get-last-task-id
   "Get last task/section id"
   []
@@ -15,7 +16,7 @@
     (:last-id meta-data 0)))
 
 
-(defn update-last-task-id [new-id]
+ (defn update-last-task-id [new-id]
   (db/update-data consts/collection-meta-data {} {:$set {:last-id new-id}}))
 
 

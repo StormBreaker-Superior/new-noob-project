@@ -2,12 +2,12 @@
   (:require [clojure.pprint :as pprint]
             [noob-project.utils :as utils]
             [monger.collection :as mc]
-            [noob-project.db :as db]
+            [noob-project.db.utils :as db]
             [ring.util.response :as response]
             [noob-project.constansts :as consts]))
 
 (defn home [request]
-  (let [existingSections (mc/find-maps (db/get-db) consts/collection-sections {} {:sectionName 1})
+  (let [existingSections (db/get-data consts/collection-sections {} {:sectionName 1})
         existingSectionsWithNumber (map-indexed (fn [idx document] (str (+ idx 1) ". " (:sectionName document))) existingSections)
         sectionCount (count existingSections)
         sectionText (clojure.string/join "\n" existingSectionsWithNumber)]
