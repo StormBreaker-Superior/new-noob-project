@@ -3,10 +3,11 @@
             [noob-project.utils :as utils]
             [monger.collection :as mc]
             [noob-project.db :as db]
-            [ring.util.response :as response]))
+            [ring.util.response :as response]
+            [noob-project.constansts :as consts]))
 
 (defn home [request]
-  (let [existingSections (mc/find-maps (db/get-db) "sections" {} {:sectionName 1})
+  (let [existingSections (mc/find-maps (db/get-db) consts/collection-sections {} {:sectionName 1})
         existingSectionsWithNumber (map-indexed (fn [idx document] (str (+ idx 1) ". " (:sectionName document))) existingSections)
         sectionCount (count existingSections)
         sectionText (clojure.string/join "\n" existingSectionsWithNumber)]
@@ -23,12 +24,11 @@
    4. If db insertion fails then 500 : Error in inserting data
    4. Else 201 " ""
   (pprint/pprint request)
-  ;; Extract the parameters from the request
   (try
     (let [params (:params request)
           section-name (get params :sectionName)
           category (get params :category)
-          collection "sections"
+          collection consts/collection-sections
           data {:sectionName section-name :category category}]
 
       ;; check if request data is empty
@@ -58,8 +58,8 @@
   (try
     (let [body (:params request)
           sectionName (:sectionId body)
-          taskCollection "tasks"
-          sectionExists (db/data-exists? "sections" {:sectionName sectionName})]
+          taskCollection consts/collection-tasks
+          sectionExists (db/data-exists? consts/collection-sections {:sectionName sectionName})]
 
       (if sectionExists
         (let [tasksDocumentsMap (db/get-data taskCollection {:sectionName sectionName} {:taskName 1 :taskDescription 1})
@@ -91,7 +91,7 @@
           sectionName (:sectionId body)
           taskName (:taskName body)
           taskDescription (:taskDescription body)
-          collection "tasks"
+          collection consts/collection-tasks
           data {:sectionName sectionName :taskName taskName :taskDescription taskDescription}]
 
       (pprint/pprint (str "body" body "\n" "Task creation requested for" data))
@@ -100,29 +100,29 @@
           ;; TODO: if section doesn't exist, then what should be the behaviour
            ;; (1) fail the request 
            ;; (2) create section
-       (if (db/data-exists? "sections" {:sectionName sectionName})
-         (let [insertResult (db/insert-data collection data)]
-           (if insertResult
+        (if (db/data-exists? consts/collection-sections {:sectionName sectionName})
+          (let [insertResult (db/insert-data collection data)]
+            (if insertResult
                  ;; TODO: allow only string value in taskName
-             (-> (response/response "Task Added Successfully")
-                 (response/status 201))
-             (-> (response/response "Internal Server Error.Db insertion failed")
-                 (response/status 501))))
-         (-> (response/response (str "section \"" sectionName "\" doesn't exist"))
-             (response/status 404)))
-       (-> (response/response "Bad Request. No sectionId or taskName passed")
-           (response/status 400))))
+              (-> (response/response "Task Added Successfully")
+                  (response/status 201))
+              (-> (response/response "Internal Server Error.Db insertion failed")
+                  (response/status 501))))
+          (-> (response/response (str "section \"" sectionName "\" doesn't exist"))
+              (response/status 404)))
+        (-> (response/response "Bad Request. No sectionId or taskName passed")
+            (response/status 400))))
     (catch Exception e
       (-> (response/response "Internal Server Error")
           (response/status 500)))))
 
 (defn delete-task [request]
   (try
-    (let [collection "tasks"
+    (let [collection consts/collection-tasks
           body (:params request)
           taskName (:taskId body)
           taskExists (db/data-exists? collection {:taskName taskName})]
-      (println "body" body " taskName " taskName) 
+      (println "body" body " taskName " taskName)
       (if taskExists
         (let [result (db/delete-data collection {:taskName taskName})]
           (if result
@@ -139,8 +139,8 @@
 
 (defn delete-section [request]
   (try
-    (let [sectionsCollection "sections"
-          taskCollection "tasks"
+    (let [sectionsCollection consts/collection-sections
+          taskCollection consts/collection-tasks
           body (:params request)
           sectionName (:sectionId body)
           sectionExist (db/data-exists? sectionsCollection {:sectionName sectionName})]
@@ -160,7 +160,7 @@
 
 (defn update-task [request]
   (try
-    (let [collection "tasks"
+    (let [collection consts/collection-tasks
           body (:params request)
           sectionName (:sectionId body)
           taskName (:taskId body)
