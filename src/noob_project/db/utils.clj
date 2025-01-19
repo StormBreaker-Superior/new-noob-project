@@ -1,6 +1,7 @@
 (ns noob-project.db.utils 
   (:require
    [monger.collection :as mc]
+   [noob-project.constansts :as consts]
    [noob-project.db.context :as dbc]))
 
 ;; 1) make atomic getter for lsat-task-id
@@ -25,3 +26,13 @@
 
 (defn update-data [collection document updates]
   (mc/update (dbc/get-db) collection document updates))
+
+(defn get-last-task-id
+  "Get last task/section id"
+  []
+  (let [meta-data-list (get-data consts/collection-meta-data {} {})
+        meta-data (nth meta-data-list 0 {})]
+    (:last-id meta-data 0)))
+
+(defn update-last-task-id [new-id]
+  (update-data consts/collection-meta-data {} {:$set {:last-id new-id}}))
