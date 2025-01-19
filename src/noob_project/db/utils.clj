@@ -21,6 +21,9 @@
 (defn get-data [collection projection filter]
   (mc/find-maps (dbc/get-db) collection projection filter))
 
+(defn get-data-map [collection projection filter]
+  (mc/find-one-as-map (dbc/get-db) collection projection filter))
+
 (defn delete-data [collection projection]
   (mc/remove (dbc/get-db) collection projection))
 

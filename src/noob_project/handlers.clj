@@ -29,22 +29,19 @@
           section-name (get params :sectionName)
           category (get params :category)
           collection consts/collection-sections
-          data {:sectionName section-name :category category}]
+          section-id (inc (dbu/get-last-task-id))
+          data {:sectionName section-name :category category :sectionId section-id}]
 
       ;; check if request data is empty
       (if (and (not-empty section-name) (not-empty category))
-        ;; if data already exists, then fail the request with conflict status : 409
-        (if (db/data-exists? collection data)
-          (->
-           (response/response "section already exists. Visit http://localhost:3000/ to see existing sections ")
-           (response/status 409))
-          ;; insert data
-          (let [result (db/insert-data collection data)]
-            (if result
-              (-> (response/response (str "Section created with name: " section-name " and category: " category))
-                  (response/status 201))
-              (-> (response/response "Error in Inserting data")
-                  (response/status 500)))))
+        (let [result (db/insert-data collection data)]
+          (if result
+            (do
+              (dbu/update-last-task-id section-id)
+              (-> (response/response (str "Section " section-id " created with name: " section-name " and category: " category))
+                (response/status 201)))
+            (-> (response/response "Error in Inserting data")
+                (response/status 500))))
         (-> (response/response (str "Either name or category is invalid" section-name category))
             (response/status 400))))
     (catch Exception e
@@ -88,33 +85,39 @@
 (defn create-task [request]
   (try
     (let [body (:params request)
-          sectionName (:sectionId body)
+          sectionId (Integer/parseInt (:sectionId body))
           taskName (:taskName body)
           taskDescription (:taskDescription body)
           collection consts/collection-tasks
-          data {:sectionName sectionName :taskName taskName :taskDescription taskDescription}]
+          task-id (inc (dbu/get-last-task-id))
+          data {:sectionId sectionId :taskName taskName :taskDescription taskDescription :taskId task-id}]
 
-      (pprint/pprint (str "body" body "\n" "Task creation requested for" data))
-      (if
-       (and (not-empty sectionName) (not-empty taskName))
+      (pprint/pprint (str "Task creation requested for" data))
+
+      (if (not-empty taskName)
           ;; TODO: if section doesn't exist, then what should be the behaviour
            ;; (1) fail the request 
            ;; (2) create section
-        (if (db/data-exists? consts/collection-sections {:sectionName sectionName})
-          (let [insertResult (db/insert-data collection data)]
-            (if insertResult
-                 ;; TODO: allow only string value in taskName
-              (-> (response/response "Task Added Successfully")
-                  (response/status 201))
-              (-> (response/response "Internal Server Error.Db insertion failed")
-                  (response/status 501))))
-          (-> (response/response (str "section \"" sectionName "\" doesn't exist"))
+        (if (db/data-exists? consts/collection-sections {:sectionId sectionId})
+          (do
+            (pprint/pprint "Sections Exist, creating task")
+            (let [insertResult (db/insert-data collection data)]
+              (if insertResult
+                (do
+                  (dbu/update-last-task-id task-id)
+                  (-> (response/response (str "Task " task-id " Added Successfully"))
+                      (response/status 201)))
+                (-> (response/response "Internal Server Error.Db insertion failed")
+                    (response/status 501)))))
+          (-> (response/response (str "section \"" sectionId "\" doesn't exist"))
               (response/status 404)))
         (-> (response/response "Bad Request. No sectionId or taskName passed")
             (response/status 400))))
     (catch Exception e
-      (-> (response/response "Internal Server Error")
-          (response/status 500)))))
+      (do
+        (println "Error : " (.getMessage e) (.printStackTrace e))
+        (-> (response/response "Internal Server Error")
+            (response/status 500))))))
 
 (defn delete-task [request]
   (try
@@ -162,9 +165,9 @@
   (try
     (let [collection consts/collection-tasks
           body (:params request)
-          sectionName (:sectionId body)
+          sectionId (:sectionId body)
           taskName (:taskId body)
-          taskExist (db/data-exists? collection {:sectionName sectionName :taskName taskName})]
+          taskExist (db/data-exists? collection {:sectionId sectionId :taskName taskName})]
       (pprint/pprint body)
       (if taskExist
         (let [result (db/update-data collection {:taskName taskName} (dissoc body :sectionId :taskId))]
