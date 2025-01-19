@@ -54,20 +54,21 @@
 (defn get-tasks [request]
   (try
     (let [body (:params request)
-          sectionName (:sectionId body)
+          sectionId (Integer/parseInt (:sectionId body))
           taskCollection consts/collection-tasks
-          sectionExists (db/data-exists? consts/collection-sections {:sectionName sectionName})]
+          sectionMap (db/get-data-map consts/collection-sections {:sectionId sectionId} {})]
 
-      (if sectionExists
-        (let [tasksDocumentsMap (db/get-data taskCollection {:sectionName sectionName} {:taskName 1 :taskDescription 1})
+      (if (not-empty sectionMap)
+        (let [tasksDocumentsMap (db/get-data taskCollection {:sectionId sectionId} {:taskName 1 :taskDescription 1})
               taskMapWithFormattedString (map-indexed
                                           (fn [idx document]
                                             (str (+ idx 1) ". " (:taskName document) " => " (get document :taskDescription "Task Not Opened Yet!!"))) tasksDocumentsMap)
               tasksText (clojure.string/join "\n" taskMapWithFormattedString)]
 
           (if (empty? tasksText)
-            (response/response (str "No Task Added for section " sectionName))
-            (response/response (str (count tasksDocumentsMap) " Tasks added for section " sectionName  "\n\n" tasksText))))
+            (response/response (str "No Task Added for section " sectionId))
+            (-> (response/response (str "Showing " (count tasksDocumentsMap) " tasks for section " (:sectionName sectionMap)  "\n\n" tasksText))
+                (response/status 200))))
 
         (-> (response/response "Section Not Found")
             (response/status 404))))
@@ -78,9 +79,13 @@
 
 
 (defn task [request]
-  (let [sectionId (utils/get-key-from-request request :sectionId)
-        taskId (utils/get-key-from-request request :taskId)]
-    (str "Showing description for " taskId " in section " sectionId)))
+  (let [taskId (Integer/parseInt (utils/get-key-from-request request :taskId))
+        taskData (dbu/get-data-map consts/collection-tasks {:taskId taskId} {})]
+    (pprint/pprint taskData)
+    (if (empty? taskData)
+      (str "Task Doesn't Exist")
+      (-> (response/response (str "Task Name " (:taskName taskData) "\n" "Task Description " (:taskDescription taskData)))
+          (response/status 200)))))
 
 (defn create-task [request]
   (try
