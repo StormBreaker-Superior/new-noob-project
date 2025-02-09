@@ -2,6 +2,7 @@
   (:require
    [monger.collection :as mc]
    [noob-project.constansts :as consts]
+   [monger.util :as mu]
    [noob-project.db.context :as dbc]))
 
 ;; 1) make atomic getter for lsat-task-id
@@ -48,3 +49,6 @@
 
 (defn update-last-task-id [new-id]
   (update-data consts/collection-meta-data {} {:$set {:last-id new-id}}))
+
+(defn generate-random-uuid []
+  (mu/random-uuid))
