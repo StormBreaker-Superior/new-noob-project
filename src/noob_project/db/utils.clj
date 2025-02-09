@@ -18,11 +18,20 @@
 (defn get-count [collection]
   (mc/count (dbc/get-db) collection))
 
-(defn get-data [collection projection filter]
-  (mc/find-maps (dbc/get-db) collection projection filter))
+(defn get-data
+  ([collection projection filter]
+   (mc/find-maps (dbc/get-db) collection projection filter))
+  ([collection]
+   (get-data collection {} {}))
+  ([collection projection]
+   (get-data collection projection {}))
+  )
 
-(defn get-data-map [collection projection filter]
-  (mc/find-one-as-map (dbc/get-db) collection projection filter))
+(defn get-data-map
+  ([collection projection filter]
+   (mc/find-one-as-map (dbc/get-db) collection projection filter))
+  ([collection projection]
+   (mc/find-one-as-map (dbc/get-db) collection projection {})))
 
 (defn delete-data [collection projection]
   (mc/remove (dbc/get-db) collection projection))
