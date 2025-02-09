@@ -1,13 +1,12 @@
 (ns noob-project.handlers
   (:require [clojure.pprint :as pprint]
             [noob-project.utils :as utils]
-            [monger.collection :as mc]
-            [noob-project.db.utils :as db]
+            [noob-project.db.utils :as dbu]
             [ring.util.response :as response]
-            [noob-project.constansts :as consts]))
+            [noob-project.constansts :as constants]))
 
 (defn home [request]
-  (let [existingSections (db/get-data consts/collection-sections {} {:sectionName 1})
+  (let [existingSections (dbu/get-data constants/collection-sections {} {:sectionName 1})
         existingSectionsWithNumber (map-indexed (fn [idx document] (str (+ idx 1) ". " (:sectionName document))) existingSections)
         sectionCount (count existingSections)
         sectionText (clojure.string/join "\n" existingSectionsWithNumber)]
@@ -28,13 +27,13 @@
     (let [params (:params request)
           section-name (get params :sectionName)
           category (get params :category)
-          collection consts/collection-sections
+          collection constants/collection-sections
           section-id (inc (dbu/get-last-task-id))
           data {:sectionName section-name :category category :sectionId section-id}]
 
       ;; check if request data is empty
       (if (and (not-empty section-name) (not-empty category))
-        (let [result (db/insert-data collection data)]
+        (let [result (dbu/insert-data collection data)]
           (if result
             (do
               (dbu/update-last-task-id section-id)
@@ -55,11 +54,11 @@
   (try
     (let [body (:params request)
           sectionId (Integer/parseInt (:sectionId body))
-          taskCollection consts/collection-tasks
-          sectionMap (db/get-data-map consts/collection-sections {:sectionId sectionId} {})]
+          taskCollection constants/collection-tasks
+          sectionMap (dbu/get-data-map constants/collection-sections {:sectionId sectionId} {})]
 
       (if (not-empty sectionMap)
-        (let [tasksDocumentsMap (db/get-data taskCollection {:sectionId sectionId} {:taskName 1 :taskDescription 1})
+        (let [tasksDocumentsMap (dbu/get-data taskCollection {:sectionId sectionId} {:taskName 1 :taskDescription 1})
               taskMapWithFormattedString (map-indexed
                                           (fn [idx document]
                                             (str (+ idx 1) ". " (:taskName document) " => " (get document :taskDescription "Task Not Opened Yet!!"))) tasksDocumentsMap)
@@ -80,7 +79,7 @@
 
 (defn task [request]
   (let [taskId (Integer/parseInt (utils/get-key-from-request request :taskId))
-        taskData (dbu/get-data-map consts/collection-tasks {:taskId taskId} {})]
+        taskData (dbu/get-data-map constants/collection-tasks {:taskId taskId} {})]
     (pprint/pprint taskData)
     (if (empty? taskData)
       (str "Task Doesn't Exist")
@@ -93,7 +92,7 @@
           sectionId (Integer/parseInt (:sectionId body))
           taskName (:taskName body)
           taskDescription (:taskDescription body)
-          collection consts/collection-tasks
+          collection constants/collection-tasks
           task-id (inc (dbu/get-last-task-id))
           data {:sectionId sectionId :taskName taskName :taskDescription taskDescription :taskId task-id}]
 
@@ -103,10 +102,10 @@
           ;; TODO: if section doesn't exist, then what should be the behaviour
            ;; (1) fail the request 
            ;; (2) create section
-        (if (db/data-exists? consts/collection-sections {:sectionId sectionId})
+        (if (dbu/data-exists? constants/collection-sections {:sectionId sectionId})
           (do
             (pprint/pprint "Sections Exist, creating task")
-            (let [insertResult (db/insert-data collection data)]
+            (let [insertResult (dbu/insert-data collection data)]
               (if insertResult
                 (do
                   (dbu/update-last-task-id task-id)
@@ -126,13 +125,13 @@
 
 (defn delete-task [request]
   (try
-    (let [collection consts/collection-tasks
+    (let [collection constants/collection-tasks
           body (:params request)
           taskName (:taskId body)
-          taskExists (db/data-exists? collection {:taskName taskName})]
+          taskExists (dbu/data-exists? collection {:taskName taskName})]
       (println "body" body " taskName " taskName)
       (if taskExists
-        (let [result (db/delete-data collection {:taskName taskName})]
+        (let [result (dbu/delete-data collection {:taskName taskName})]
           (if result
             (-> (response/response "Task Deleted Successfully"))
             (-> (response/response "Internal Server Error")
@@ -147,14 +146,14 @@
 
 (defn delete-section [request]
   (try
-    (let [sectionsCollection consts/collection-sections
-          taskCollection consts/collection-tasks
+    (let [sectionsCollection constants/collection-sections
+          taskCollection constants/collection-tasks
           body (:params request)
           sectionName (:sectionId body)
-          sectionExist (db/data-exists? sectionsCollection {:sectionName sectionName})]
+          sectionExist (dbu/data-exists? sectionsCollection {:sectionName sectionName})]
       (if sectionExist
-        (let [sectionsResult (db/delete-data sectionsCollection {:sectionName sectionName})
-              tasksResult (db/delete-data taskCollection {:sectionName sectionName})]
+        (let [sectionsResult (dbu/delete-data sectionsCollection {:sectionName sectionName})
+              tasksResult (dbu/delete-data taskCollection {:sectionName sectionName})]
           (if sectionsResult
             ;; TODO : Handle eventual consistency or tasks deletion failures
             (-> (response/response "Task Deleted Successsfully"))
@@ -168,14 +167,14 @@
 
 (defn update-task [request]
   (try
-    (let [collection consts/collection-tasks
+    (let [collection constants/collection-tasks
           body (:params request)
           sectionId (:sectionId body)
           taskName (:taskId body)
-          taskExist (db/data-exists? collection {:sectionId sectionId :taskName taskName})]
+          taskExist (dbu/data-exists? collection {:sectionId sectionId :taskName taskName})]
       (pprint/pprint body)
       (if taskExist
-        (let [result (db/update-data collection {:taskName taskName} (dissoc body :sectionId :taskId))]
+        (let [result (dbu/update-data collection {:taskName taskName} (dissoc body :sectionId :taskId))]
           (if result
             (-> (response/response "Task Updated Successsfully"))
             (-> (response/response "Internal Server Error")
