@@ -1,7 +1,7 @@
 (ns noob-project.db.utils 
   (:require
    [monger.collection :as mc]
-   [noob-project.constansts :as consts]
+   [noob-project.constansts :as constants]
    [monger.util :as mu]
    [noob-project.db.context :as dbc]))
 
@@ -43,12 +43,19 @@
 (defn get-last-task-id
   "Get last task/section id"
   []
-  (let [meta-data-list (get-data consts/collection-meta-data {} {})
+  (let [meta-data-list (get-data constants/collection-meta-data {} {})
         meta-data (nth meta-data-list 0 {})]
     (:last-id meta-data 0)))
 
 (defn update-last-task-id [new-id]
-  (update-data consts/collection-meta-data {} {:$set {:last-id new-id}}))
+  (update-data constants/collection-meta-data {} {:$set {:last-id new-id}}))
 
 (defn generate-random-uuid []
   (mu/random-uuid))
+
+(defn get-or-generate-id [collection filter-key filter-value id-key]
+  (let [existing-data-map (get-data-map collection {filter-key filter-value})]
+    (if (not-empty existing-data-map)
+      {:id (get existing-data-map (keyword id-key)) :generated false}
+      (let [generated-id (generate-random-uuid)]
+        {:id generated-id :generated true}))))
