@@ -16,6 +16,21 @@
       (response/response "Welcome to HomePage! No sections Added")
       (response/response (str "Welcome to HomePage!" "\n\n" sectionCount " sections are added" "\n" sectionText)))))
 
+
+(defn create-user [request]
+  (try
+    (let [body (:params request)]
+      (if-let [user-name (:user-name body)]
+        (let [user-id (dbu/generate-random-uuid)
+              result (dbu/insert-data "users" {:id user-id :name user-name})]
+          (if result
+            {:body {:data {:id (:id user-id)}} :status 200}
+            {:status 500 :body {:message "Internal Server Error"}}))
+        {:status 400 :body {:message "User Name can't be empty"}}))
+    (catch Exception e
+      {:status 500 :body {:message "Internal Server Error"}})))
+
+
 (defn create-section [request]
   "" " 1. get sectionName and category from request
    2. If they are empry/null, then it is Bad Request
