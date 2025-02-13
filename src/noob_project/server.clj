@@ -17,7 +17,8 @@
           rmkp/wrap-keyword-params
           wrap-multipart-params
           routes/wrap-headers-response
-          wrap-json-response)
+          wrap-json-response
+          routes/print-response)
       {:port          port
        :join?         true
        :auto-refresh? true})))
