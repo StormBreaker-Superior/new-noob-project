@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [com.novemberain/monger "3.5.0"]
                  [ring "1.9.5"]
+                 [ring/ring-json "0.5.1"]
                  [compojure "1.6.2"]
                  [mount "0.1.16"]]
   :main ^:skip-aot noob-project.core

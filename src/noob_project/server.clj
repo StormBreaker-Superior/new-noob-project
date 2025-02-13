@@ -4,16 +4,20 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.stacktrace :refer [wrap-stacktrace]]
             [ring.middleware.keyword-params :as rmkp]
+            [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]))
 
 (defn start-server [config]
   (let [port (:port config)]
     (jetty/run-jetty
-     (-> routes/app
-         rmkp/wrap-keyword-params
-         wrap-multipart-params
-         wrap-reload
-         wrap-stacktrace)
-     {:port port
-      :join? true
-      :auto-refresh? true})))
+      (-> routes/app
+          wrap-reload
+          wrap-stacktrace
+          (wrap-json-body {:key-fn keyword})
+          rmkp/wrap-keyword-params
+          wrap-multipart-params
+          routes/wrap-headers-response
+          wrap-json-response)
+      {:port          port
+       :join?         true
+       :auto-refresh? true})))
