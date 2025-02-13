@@ -56,6 +56,8 @@
 (defn get-or-generate-id [collection filter-key filter-value id-key]
   (let [existing-data-map (get-data-map collection {filter-key filter-value})]
     (if (not-empty existing-data-map)
-      {:id (get existing-data-map (keyword id-key)) :generated false}
+      {:id ((keyword id-key) existing-data-map ) :generated false}
       (let [generated-id (generate-random-uuid)]
-        {:id generated-id :generated true}))))
+        {:id generated-id :generated true}))
+    ))
+

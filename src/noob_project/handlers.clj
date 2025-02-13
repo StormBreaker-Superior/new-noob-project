@@ -3,6 +3,7 @@
             [noob-project.utils :as utils]
             [noob-project.db.utils :as dbu]
             [ring.util.response :as response]
+            [noob-project.utils :as nu]
             [noob-project.constansts :as constants]))
 
 (defn home [request]
@@ -19,15 +20,19 @@
 
 (defn create-user [request]
   (try
-    (let [body (:params request)]
-      (if-let [user-name (:user-name body)]
-        (let [user-id (dbu/generate-random-uuid)
-              result (dbu/insert-data "users" {:id user-id :name user-name})]
-          (if result
-            {:body {:data {:id (:id user-id)}} :status 200}
-            {:status 500 :body {:message "Internal Server Error"}}))
-        {:status 400 :body {:message "User Name can't be empty"}}))
+    (pprint/pprint request)
+    (let [body (:body request)]
+      (println "Body is create-user " body)
+      (nu/noob-if-let [user-name (:user-name body)] not-empty
+                      (let [user-id-map (dbu/get-or-generate-id "users" "user-name" user-name "user-id")]
+                        (if (:generated user-id-map)
+                          (nu/noob-if-let [result (dbu/insert-data "users" {:user-id (:id user-id-map) :user-name user-name})] not-empty
+                                          {:body {:data {:user-id (:id user-id-map)}} :status 200}
+                                          {:status 501 :body {:message "Internal Server Error"}})
+                          {:status 200 :body {:data {:user-id (:id user-id-map)}}}))
+                      {:status 400 :body {:message "User Name can't be empty"}}))
     (catch Exception e
+      (println (.printStackTrace e))
       {:status 500 :body {:message "Internal Server Error"}})))
 
 
