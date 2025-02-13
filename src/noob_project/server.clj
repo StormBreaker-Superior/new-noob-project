@@ -1,6 +1,7 @@
 (ns noob-project.server
   (:require [ring.adapter.jetty :as jetty]
             [noob-project.routes :as routes]
+            [noob-project.middlewares :refer [wrap-headers-response print-response]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.stacktrace :refer [wrap-stacktrace]]
             [ring.middleware.keyword-params :as rmkp]
@@ -16,9 +17,9 @@
           (wrap-json-body {:key-fn keyword})
           rmkp/wrap-keyword-params
           wrap-multipart-params
-          routes/wrap-headers-response
+          wrap-headers-response
           wrap-json-response
-          routes/print-response)
+          print-response)
       {:port          port
        :join?         true
        :auto-refresh? true})))
