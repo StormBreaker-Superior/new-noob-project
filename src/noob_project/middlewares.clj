@@ -4,7 +4,7 @@
   (fn [request]
     (let [response (handler request)]
       (update response :headers merge {"Access-Control-Allow-Origin"  "http://localhost:4000"
-                                       "Access-Control-Allow-Methods" "GET, POST, OPTIONS"
+                                       "Access-Control-Allow-Methods" "GET, POST, OPTIONS, DELETE"
                                        "Access-Control-Allow-Headers" "Content-Type"}))))
 
 (defn print-response [handler]
