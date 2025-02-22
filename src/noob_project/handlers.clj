@@ -125,40 +125,37 @@
 
 (defn create-task [request]
   (try
-    (let [body (:params request)
-          sectionId (Integer/parseInt (:sectionId body))
-          taskName (:taskName body)
-          taskDescription (:taskDescription body)
-          collection constants/collection-tasks
+    (let [{:keys [taskName taskDescription sectionId]} (:body request)
           task-id (inc (dbu/get-last-task-id))
-          data {:sectionId sectionId :taskName taskName :taskDescription taskDescription :taskId task-id}]
+          base-task {:taskName taskName :taskDescription taskDescription :taskId task-id}]
+      (println request)
+      (cond
+        (empty? taskName)
+        {:status 400 :body {:message "No task name found"}}
 
-      (pprint/pprint (str "Task creation requested for" data))
+        ;; Section exists -> Insert task with section
+        (and (not-empty sectionId)
+             (dbu/data-exists? constants/collection-sections {:sectionId (Integer/parseInt sectionId)}))
+        (do
+          (dbu/insert-data constants/collection-tasks (assoc base-task :sectionId sectionId))
+          (dbu/update-last-task-id task-id)
+          {:status 201 :body {:taskId task-id :taskName taskName}})
 
-      (if (not-empty taskName)
-          ;; TODO: if section doesn't exist, then what should be the behaviour
-           ;; (1) fail the request 
-           ;; (2) create section
-        (if (dbu/data-exists? constants/collection-sections {:sectionId sectionId})
-          (do
-            (pprint/pprint "Sections Exist, creating task")
-            (let [insertResult (dbu/insert-data collection data)]
-              (if insertResult
-                (do
-                  (dbu/update-last-task-id task-id)
-                  (-> (response/response (str "Task " task-id " Added Successfully"))
-                      (response/status 201)))
-                (-> (response/response "Internal Server Error.Db insertion failed")
-                    (response/status 501)))))
-          (-> (response/response (str "section \"" sectionId "\" doesn't exist"))
-              (response/status 404)))
-        (-> (response/response "Bad Request. No sectionId or taskName passed")
-            (response/status 400))))
+        ;; Section ID provided but not found
+        (not-empty sectionId)
+        {:status 404 :body {:message "Section Not Found"}}
+
+        ;; No section -> Create task without section
+        :else
+        (do
+          (dbu/insert-data constants/collection-tasks base-task)
+          (dbu/update-last-task-id task-id)
+          {:status 201 :body {:taskId task-id :taskName taskName}})))
     (catch Exception e
-      (do
-        (println "Error : " (.getMessage e) (.printStackTrace e))
-        (-> (response/response "Internal Server Error")
-            (response/status 500))))))
+      (println "Error:" (.getMessage e))
+      (.printStackTrace e)
+      {:status 500 :body {:error "Internal Server Error"}})))
+
 
 (defn delete-task [request]
   (try
