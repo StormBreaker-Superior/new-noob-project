@@ -9,7 +9,8 @@
     (compojure/GET "/" params handlers/get-user-tasks)
     (compojure/GET "/:taskId" params handlers/task)
     (compojure/POST "/" params handlers/create-task)
-    (compojure/PATCH "/:taskId" params handlers/update-task))
+    (compojure/PATCH "/:taskId" params handlers/update-task)
+    (compojure/DELETE "/:taskId" params handlers/delete-task))
   (compojure/context "/sections" []
     (compojure/GET "/:sectionId" params handlers/get-tasks)
     (compojure/POST "/" params handlers/create-section)

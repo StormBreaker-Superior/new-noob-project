@@ -159,23 +159,20 @@
 
 (defn delete-task [request]
   (try
-    (let [collection constants/collection-tasks
-          body (:params request)
-          taskName (:taskId body)
-          taskExists (dbu/data-exists? collection {:taskName taskName})]
-      (println "body" body " taskName " taskName)
+    (let [{:keys [taskId]} (:params request)
+          taskId (Integer/parseInt taskId)
+          taskExists (dbu/data-exists? constants/collection-tasks {:taskId taskId})]
+      (println "Task Exists " taskId)
       (if taskExists
-        (let [result (dbu/delete-data collection {:taskName taskName})]
+        (let [result (dbu/delete-data constants/collection-tasks {:taskId taskId})]
           (if result
-            (-> (response/response "Task Deleted Successfully"))
-            (-> (response/response "Internal Server Error")
-                (response/status 501))))
-        (-> (response/response "Task Not Found")
-            (response/status 404))))
+            {:status 200 :body {:message "Task Deleted Successfully"}}
+            {:status 501 :body {:message "Internal Server Error"}}))
+        {:status 404
+         :body   {:message "Task not found"}}))
     (catch Exception e
       (pprint/pprint (.printStackTrace e))
-      (-> (response/response "Internal Server Error")
-          (response/status 500)))))
+      {:status 500 :body {:message "Internal Server Error"}})))
 
 
 (defn delete-section [request]
