@@ -18,6 +18,16 @@
       (response/response (str "Welcome to HomePage!" "\n\n" sectionCount " sections are added" "\n" sectionText)))))
 
 
+(defn get-user-tasks [request]
+  (try
+    (let [all-tasks (dbu/get-data constants/collection-tasks {} {:taskName 1 :taskDescription 1 :taskId 1 :_id 0})]
+      {:status 200
+       :body   {:tasks all-tasks}})
+    (catch Exception e
+      (println (.printStackTrace e))
+      {:status 500 :body {:message "Internal Server Error"}})))
+
+
 (defn create-user [request]
   (try
     (pprint/pprint request)

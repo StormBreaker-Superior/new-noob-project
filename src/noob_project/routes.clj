@@ -6,6 +6,7 @@
 (compojure/defroutes app
   (compojure/GET "/" params handlers/home)
   (compojure/context "/tasks" []
+    (compojure/GET "/" params handlers/get-user-tasks)
     (compojure/GET "/:taskId" params handlers/task)
     (compojure/POST "/" params handlers/create-task)
     (compojure/PATCH "/:taskId" params handlers/update-task))
