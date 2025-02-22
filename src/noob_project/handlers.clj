@@ -108,13 +108,20 @@
 
 
 (defn task [request]
-  (let [taskId (Integer/parseInt (utils/get-key-from-request request :taskId))
-        taskData (dbu/get-data-map constants/collection-tasks {:taskId taskId} {})]
-    (pprint/pprint taskData)
-    (if (empty? taskData)
-      (str "Task Doesn't Exist")
-      (-> (response/response (str "Task Name " (:taskName taskData) "\n" "Task Description " (:taskDescription taskData)))
-          (response/status 200)))))
+  (try
+    (let [taskId (Integer/parseInt (utils/get-key-from-request request :taskId))
+          taskData (dbu/get-data-map constants/collection-tasks {:taskId taskId} {:_id 0})]
+      {:status 200
+       :body   taskData}
+      )
+    (catch NumberFormatException e
+      (println (.printStackTrace e))
+      {:status 400
+       :body   {"error" "Invalid task id"}})
+    (catch Exception e
+      (println (.printStackTrace e))
+      {:status 500
+       :body   {"error" "Internal Server Error "}})))
 
 (defn create-task [request]
   (try
