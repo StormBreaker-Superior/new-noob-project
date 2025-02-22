@@ -19,4 +19,4 @@
      {:status 200
       :headers {}
       :body "OK"})
-  (route/not-found "Page Not Found !"))
+  (route/not-found "Page Not Yet Implemented !"))
