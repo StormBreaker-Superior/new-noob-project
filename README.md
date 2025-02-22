@@ -8,7 +8,7 @@ Download from http://example.com/FIXME.
 
 ## Usage
 
-FIXME: explanation
+FIXME: explanation (💯)
 
     $ java -jar noob-project-0.1.0-standalone.jar [args]
 
